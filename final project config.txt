@@ -1,0 +1,161 @@
+---------------------------------------------On Multi-layer Switch
+
+en 
+conf t
+vlan 10
+int vlan 10 
+ip add 10.0.0.3 255.0.0.0
+standby 10 ip 10.0.0.100
+no sh
+exit 
+int g1/0/2 
+no sw 
+ip add 30.0.0.1 255.0.0.0
+no sh
+exit
+line vty 0 4
+pass 123
+login 
+exit 
+ip routing
+ip route 0.0.0.0 0.0.0.0 30.0.0.2
+do wr
+
+-------------------------------------------------------Normal switch
+
+en
+conf t
+int fa0/1
+sw mo acc
+sw acc vlan 10
+no sh 
+int ra f0/2-3
+sw mo tr
+no sh
+ex
+do wr
+
+-----------------------------------------------------------Router
+en
+conf t
+int Gig0/0/0
+no sh
+ip add 192.168.4.2 255.255.255.0
+int Gig0/0/1
+no sh
+ip add 192.168.3.2 255.255.255.0
+exit
+do wr
+---------------------------------------------------------Router Serial
+
+en
+conf t
+int se0/2/0
+ip add 192.168.2.1 255.255.255.0
+no sh
+exit
+do wr
+
+--------------------------------------------------------Port security
+en
+conf t
+int fa0/5
+sw port-security mac-address sticky
+exit
+do wr
+-------------------------------------------------------OSPF
+en
+conf t
+router ospf 1
+network 10.0.0.0 0.255.255.255 area 0
+end
+show ip ospf neighbor
+wr
+
+clear ip ospf process
+y
+
+passive-interface fa0/0 ==>Not important
+defualt-information originate ==>Not important
+الاجهزه اللي متصله بالراوتر لازم نعملها باسيف علشان مش كل شويه يبعتلها هالو مسدج بمعني ان انا باوقع الاواسبياف بيني وبين اللي قصادي(معلومه مش مهمه)
+------------------------------------------------DHCP
+en
+conf t
+ip dhcp pool aa
+network 20.0.0.0 255.0.0.0
+default-router 20.0.0.254
+dns-server 30.0.0.60
+ex
+ip dhcp excluded-address 20.0.0.254
+ip dhcp excluded-address 20.0.0.2
+ip dhcp excluded-address 20.0.0.3
+ip dhcp excluded-address 30.0.0.60
+do wr
+------------------------------------------helper address on multi-layer switch
+en
+conf t
+int vlan 10
+ip helper-address 10.0.0.2
+ex
+do wr 
+
+---------------------------------------Access-List
+en
+conf t
+access-list 101 deny icmp host 192.168.0.3 any echo
+access-list 101 deny tcp host 192.168.0.3 10.0.0.0 0.255.255.255 eq telnet
+access-list 101 deny tcp host 192.168.0.3 10.0.0.0 0.255.255.255 eq ftp
+int gig0/0/0
+ip access-group 101 in
+do wr
+
+
+
+------------------------------------------change hostname
+en 
+conf t
+hostname SW1
+do wr
+----------------------------------------- unenable ststic routing
+en
+conf t
+no ip route 0.0.0.0 0.0.0.0 100.0.0.2
+do wr
+----------------------------------------Delete UNwanted DHCP Pool 
+en
+no ip dhcp pool aa
+no ip dhcp excluded-address 20.0.0.254
+wr
+----------------------------------------Clear the ospf data
+en
+clear ip ospf process
+yes
+--------------------------------------Useful command
+en
+show ip route ospf
+show ip ospf database
+show ip protocols
+--------------------------------------Useful command
+en
+conf t
+no passive-interface se0/2/0 ==>(Not important)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
